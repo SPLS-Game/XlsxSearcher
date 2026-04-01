@@ -1,10 +1,9 @@
 """XlsxSearcher - Excel子表搜索工具"""
 import sys
-from gui.app import XlsxSearcherApp
+from gui.app import run_app
 
 def main():
-    app = XlsxSearcherApp()
-    app.run()
+    run_app()
 
 if __name__ == '__main__':
     main()

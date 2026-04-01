@@ -24,13 +24,6 @@ Excel 子表搜索工具 - 快速查找 xlsx 文件中的子表名称
 pip install -r requirements.txt
 ```
 
-### macOS 额外步骤
-
-如果遇到 `ModuleNotFoundError: No module named '_tkinter'`，需要安装 tkinter：
-
-```bash
-brew install python-tk
-```
 
 ## 使用方法
 
@@ -40,13 +33,17 @@ python main.py
 
 ### 操作流程
 
-1. 首次运行会提示选择要扫描的目录
+1. 点击 **"选择目录"** 按钮选择要扫描的文件夹
 2. 程序会自动扫描目录下所有 xlsx 文件并建立索引
-3. 在搜索框输入关键词（子表名称或文件名）
+3. 在搜索框输入关键词（子表名称或文件名）进行搜索
 4. 选中搜索结果，点击底部按钮执行操作：
    - **打开文件**: 用默认程序打开文件
    - **定位文件**: 在文件管理器中选中文件
    - **复制路径**: 复制文件路径到剪贴板
+
+其他功能：
+- **重新扫描**: 重新扫描当前选择的目录（只更新有变化的文件）
+- **清空索引**: 清除所有已建立的索引数据
 
 ## 项目结构
 
@@ -59,7 +56,7 @@ XlsxSearcher/
 │   ├── scanner.py       # xlsx 文件扫描
 │   └── searcher.py      # 搜索逻辑
 ├── gui/
-│   └── app.py           # Tkinter 主界面
+│   └── app.py           # PyQt5 主界面
 └── utils/
     └── file_utils.py    # 文件操作工具
 ```
@@ -69,8 +66,8 @@ XlsxSearcher/
 ### macOS
 
 ```bash
-pip install pyinstaller
-pyinstaller --onefile --windowed main.py
+# 已在依赖中包含
+pyinstaller --onefile --windowed --name XlsxSearcher --icon=icon.icns main.py
 ```
 
 生成的 `.app` 文件在 `dist` 目录下。
@@ -78,11 +75,20 @@ pyinstaller --onefile --windowed main.py
 ### Windows
 
 ```bash
-pip install pyinstaller
-pyinstaller --onefile --windowed main.py
+# 已在依赖中包含
+pyinstaller --onefile --windowed --name XlsxSearcher --icon=icon.ico main.py
 ```
 
 生成的 `.exe` 文件在 `dist` 目录下。
+
+### Linux
+
+```bash
+# 已在依赖中包含
+pyinstaller --onefile --windowed --name XlsxSearcher main.py
+```
+
+生成的可执行文件在 `dist` 目录下。
 
 ## 数据存储
 
