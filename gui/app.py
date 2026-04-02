@@ -18,7 +18,7 @@ from utils.file_utils import open_file, open_in_explorer, copy_to_clipboard
 
 class ScanWorker(QThread):
     """扫描工作线程"""
-    finished = pyqtSignal(int, int, int)  # added, updated, deleted
+    finished = pyqtSignal(int, int, int, float)  # added, updated, deleted, duration
     error = pyqtSignal(str)
 
     def __init__(self, directory, scanner, index_manager):
@@ -28,11 +28,14 @@ class ScanWorker(QThread):
         self.index_manager = index_manager
 
     def run(self):
+        import time
+        start_time = time.time()
         try:
             added, updated, deleted = self.scanner.scan_directory_incremental(
                 self.directory, self.index_manager
             )
-            self.finished.emit(added, updated, deleted)
+            duration = time.time() - start_time
+            self.finished.emit(added, updated, deleted, duration)
         except Exception as e:
             self.error.emit(str(e))
 
@@ -183,13 +186,22 @@ class XlsxSearcherApp(QMainWindow):
         self.scan_worker.error.connect(self._on_scan_error)
         self.scan_worker.start()
 
-    def _on_scan_complete(self, added, updated, deleted):
+    def _on_scan_complete(self, added, updated, deleted, duration):
         """扫描完成回调"""
         self.is_scanning = False
 
         stats = self.index_manager.get_stats()
+
+        # 格式化耗时
+        if duration >= 60:
+            time_str = f"{duration / 60:.1f}分钟"
+        elif duration >= 1:
+            time_str = f"{duration:.1f}秒"
+        else:
+            time_str = f"{duration * 1000:.0f}毫秒"
+
         self.status_bar.showMessage(
-            f"索引完成: {stats['file_count']}文件, {stats['sheet_count']}子表"
+            f"索引完成: {stats['file_count']}文件, {stats['sheet_count']}子表, 耗时 {time_str}"
         )
 
         # 执行初始搜索
@@ -242,8 +254,6 @@ class XlsxSearcherApp(QMainWindow):
                 result['filepath']
             ])
             self.result_tree.addTopLevelItem(item)
-
-        self.status_bar.showMessage(f"找到 {len(self.search_results)} 条结果")
 
     def _on_select(self, item, column):
         """选中结果项"""

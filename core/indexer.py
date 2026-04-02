@@ -67,14 +67,28 @@ class IndexManager:
         """添加文件及其子表到索引"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        # 插入文件信息
-        cursor.execute(
-            'INSERT OR REPLACE INTO xlsx_files (filename, filepath, modified_time, sheet_count) VALUES (?, ?, ?, ?)',
-            (filename, filepath, modified_time, len(sheet_names))
-        )
-        file_id = cursor.lastrowid
-        # 如果是REPLACE，先删除旧的子表
-        cursor.execute('DELETE FROM sheets WHERE file_id = ?', (file_id,))
+
+        # 先查询是否已存在，获取 file_id
+        cursor.execute('SELECT id FROM xlsx_files WHERE filepath = ?', (filepath,))
+        row = cursor.fetchone()
+
+        if row:
+            # 已存在，更新并获取 file_id
+            file_id = row[0]
+            cursor.execute(
+                'UPDATE xlsx_files SET filename = ?, modified_time = ?, sheet_count = ? WHERE id = ?',
+                (filename, modified_time, len(sheet_names), file_id)
+            )
+            # 删除旧的子表
+            cursor.execute('DELETE FROM sheets WHERE file_id = ?', (file_id,))
+        else:
+            # 新插入
+            cursor.execute(
+                'INSERT INTO xlsx_files (filename, filepath, modified_time, sheet_count) VALUES (?, ?, ?, ?)',
+                (filename, filepath, modified_time, len(sheet_names))
+            )
+            file_id = cursor.lastrowid
+
         # 插入子表信息
         for sheet_name in sheet_names:
             cursor.execute('INSERT INTO sheets (file_id, sheet_name) VALUES (?, ?)', (file_id, sheet_name))
