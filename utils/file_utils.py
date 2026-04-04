@@ -16,8 +16,8 @@ def open_in_explorer(filepath: str):
     """在文件管理器中定位文件"""
     if sys.platform == 'win32':
         # Windows: 使用资源管理器选中文件
-        # 必须使用列表形式，确保路径正确处理
-        subprocess.Popen(['explorer', '/select,', filepath])
+        normalized_path = os.path.normpath(os.path.abspath(filepath))
+        subprocess.Popen(f'explorer.exe /select,"{normalized_path}"')
     elif sys.platform == 'darwin':
         # macOS: 在 Finder 中选中文件
         subprocess.run(['open', '-R', filepath])

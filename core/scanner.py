@@ -131,7 +131,12 @@ class XlsxScanner:
         pending_updates = []  # [(filepath, filename, modified_time, sheet_names), ...]
 
         # 并发处理文件
+        total_files = len(files_to_process)
+        if progress_callback:
+            progress_callback(0, total_files)
+
         if files_to_process:
+            processed = 0
             with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                 futures = {
                     executor.submit(self.get_sheet_names, filepath): (filepath, filename, modified_time)
@@ -140,14 +145,16 @@ class XlsxScanner:
 
                 for future in as_completed(futures):
                     filepath, filename, modified_time = futures[future]
+                    processed += 1
                     try:
                         sheet_names = future.result()
                         if sheet_names:
                             pending_updates.append((filename, filepath, modified_time, sheet_names))
-                            if progress_callback:
-                                progress_callback(len(pending_updates))
                     except Exception as e:
                         print(f"警告: 处理文件失败 {filepath}: {e}")
+                    finally:
+                        if progress_callback:
+                            progress_callback(processed, total_files)
 
         # 主线程写入数据库（线程安全）
         for filename, filepath, modified_time, sheet_names in pending_updates:

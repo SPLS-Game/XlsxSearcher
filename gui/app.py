@@ -20,6 +20,7 @@ class ScanWorker(QThread):
     """扫描工作线程"""
     finished = pyqtSignal(int, int, int, float)  # added, updated, deleted, duration
     error = pyqtSignal(str)
+    progress = pyqtSignal(int, int)  # current, total
 
     def __init__(self, directory, scanner, index_manager):
         super().__init__()
@@ -27,12 +28,15 @@ class ScanWorker(QThread):
         self.scanner = scanner
         self.index_manager = index_manager
 
+    def _on_progress(self, current, total):
+        self.progress.emit(current, total)
+
     def run(self):
         import time
         start_time = time.time()
         try:
             added, updated, deleted = self.scanner.scan_directory_incremental(
-                self.directory, self.index_manager
+                self.directory, self.index_manager, progress_callback=self._on_progress
             )
             duration = time.time() - start_time
             self.finished.emit(added, updated, deleted, duration)
@@ -67,6 +71,8 @@ class XlsxSearcherApp(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(10, 10, 10, 0)
+        main_layout.setSpacing(4)
 
         # 顶部搜索区域
         top_widget = QWidget()
@@ -108,7 +114,7 @@ class XlsxSearcherApp(QMainWindow):
         self.setStatusBar(self.status_bar)
         self.status_bar.showMessage("就绪")
 
-        # 结果表格 (使用 QTreeWidget 替代 Treeview)
+        # 结果列表
         self.result_tree = QTreeWidget()
         self.result_tree.setHeaderLabels(["文件名", "子表名称", "文件路径"])
         self.result_tree.setColumnWidth(0, 200)
@@ -122,7 +128,7 @@ class XlsxSearcherApp(QMainWindow):
 
         main_layout.addWidget(self.result_tree)
 
-        # 底部操作按钮
+        # 底部操作按钮 + 右侧加载条
         bottom_widget = QWidget()
         bottom_layout = QHBoxLayout(bottom_widget)
         bottom_layout.setContentsMargins(10, 5, 10, 10)
@@ -144,6 +150,14 @@ class XlsxSearcherApp(QMainWindow):
         bottom_layout.addWidget(self.btn_locate)
         bottom_layout.addWidget(self.btn_copy)
         bottom_layout.addStretch()
+
+        self.scan_progress = QProgressBar()
+        self.scan_progress.setFixedWidth(220)
+        self.scan_progress.setRange(0, 100)
+        self.scan_progress.setValue(0)
+        self.scan_progress.setVisible(False)
+        bottom_layout.addSpacing(12)
+        bottom_layout.addWidget(self.scan_progress)
 
     def _check_existing_index(self):
         """检查是否存在已保存的扫描目录（可选显示）"""
@@ -173,6 +187,8 @@ class XlsxSearcherApp(QMainWindow):
 
         self.is_scanning = True
         self.status_bar.showMessage("正在扫描...")
+        self.scan_progress.setVisible(True)
+        self.scan_progress.setRange(0, 0)
 
         # 禁用按钮
         for btn in [self.btn_open, self.btn_locate, self.btn_copy]:
@@ -184,11 +200,23 @@ class XlsxSearcherApp(QMainWindow):
         )
         self.scan_worker.finished.connect(self._on_scan_complete)
         self.scan_worker.error.connect(self._on_scan_error)
+        self.scan_worker.progress.connect(self._on_scan_progress)
         self.scan_worker.start()
+
+    def _on_scan_progress(self, current, total):
+        """扫描进度回调"""
+        if total > 0:
+            self.scan_progress.setRange(0, total)
+            self.scan_progress.setValue(current)
+            self.status_bar.showMessage(f"正在扫描... {current}/{total}")
+        else:
+            self.scan_progress.setRange(0, 0)
+            self.status_bar.showMessage("正在扫描...")
 
     def _on_scan_complete(self, added, updated, deleted, duration):
         """扫描完成回调"""
         self.is_scanning = False
+        self.scan_progress.setVisible(False)
 
         stats = self.index_manager.get_stats()
 
@@ -210,6 +238,7 @@ class XlsxSearcherApp(QMainWindow):
     def _on_scan_error(self, error_msg):
         """扫描错误回调"""
         self.is_scanning = False
+        self.scan_progress.setVisible(False)
         self.status_bar.showMessage("扫描出错")
         QMessageBox.critical(self, "错误", f"扫描失败: {error_msg}")
 
