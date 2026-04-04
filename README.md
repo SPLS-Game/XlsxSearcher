@@ -94,9 +94,7 @@ pyinstaller --onefile --windowed --name XlsxSearcher main.py
 
 索引数据库保存在用户目录下：
 
-- **macOS**: `~/Library/Application Support/XlsxSearcher/index.db`
-- **Windows**: `~/XlsxSearcher/index.db`
-- **Linux**: `~/.local/share/XlsxSearcher/index.db`
+- **所有平台**: `~/XlsxSearcher/index.db`
 
 ## 许可证
 

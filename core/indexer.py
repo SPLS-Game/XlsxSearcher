@@ -9,15 +9,7 @@ class IndexManager:
         if db_path is None:
             # 在用户目录创建数据库
             user_home = os.path.expanduser("~")
-            if sys.platform == 'darwin':
-                # macOS: 使用 Application Support 目录
-                app_data_dir = os.path.join(user_home, "Library", "Application Support", "XlsxSearcher")
-            elif sys.platform == 'win32':
-                # Windows: 直接在用户目录下
-                app_data_dir = os.path.join(user_home, "XlsxSearcher")
-            else:
-                # Linux: 使用 .local/share 目录
-                app_data_dir = os.path.join(user_home, ".local", "share", "XlsxSearcher")
+            app_data_dir = os.path.join(user_home, "XlsxSearcher")
             os.makedirs(app_data_dir, exist_ok=True)
             db_path = os.path.join(app_data_dir, "index.db")
         self.db_path = db_path
