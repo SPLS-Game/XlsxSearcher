@@ -180,15 +180,16 @@ class XlsxSearcherApp(QMainWindow):
         search_outer.setSpacing(4)
         main_layout.addWidget(search_widget)
 
-        # Row 1: 搜索输入
+        # Row 1: 搜索输入（stretch 全给输入框，label 紧贴）
         row1 = QHBoxLayout()
+        row1.setSpacing(6)
         self.sheet_entry = QLineEdit()
         self.sheet_entry.setPlaceholderText("子表名称")
         self.sheet_entry.textChanged.connect(self._do_search)
         self.sheet_entry.returnPressed.connect(self._on_search_committed)
         self.sheet_entry.editingFinished.connect(self._on_search_committed)
         row1.addWidget(QLabel("子表名称:"))
-        row1.addWidget(self.sheet_entry)
+        row1.addWidget(self.sheet_entry, 1)
 
         self.filename_entry = QLineEdit()
         self.filename_entry.setPlaceholderText("文件名")
@@ -196,7 +197,7 @@ class XlsxSearcherApp(QMainWindow):
         self.filename_entry.returnPressed.connect(self._on_search_committed)
         self.filename_entry.editingFinished.connect(self._on_search_committed)
         row1.addWidget(QLabel("文件名:"))
-        row1.addWidget(self.filename_entry)
+        row1.addWidget(self.filename_entry, 1)
 
         self.cell_entry = QLineEdit()
         self.cell_entry.setPlaceholderText("单元格内容")
@@ -204,19 +205,20 @@ class XlsxSearcherApp(QMainWindow):
         self.cell_entry.returnPressed.connect(self._on_search_committed)
         self.cell_entry.editingFinished.connect(self._on_search_committed)
         row1.addWidget(QLabel("单元格:"))
-        row1.addWidget(self.cell_entry)
+        row1.addWidget(self.cell_entry, 1)
 
         search_outer.addLayout(row1)
 
-        # Row 2: 匹配/排序/视图/历史
+        # Row 2: 匹配/排序/视图/历史（stretch 全给下拉框）
         row2 = QHBoxLayout()
+        row2.setSpacing(6)
         self.match_mode_combo = QComboBox()
         self.match_mode_combo.addItem("模糊匹配", 'fuzzy')
         self.match_mode_combo.addItem("前缀匹配", 'prefix')
         self.match_mode_combo.addItem("精确匹配", 'exact')
         self.match_mode_combo.currentIndexChanged.connect(self._do_search)
         row2.addWidget(QLabel("匹配:"))
-        row2.addWidget(self.match_mode_combo)
+        row2.addWidget(self.match_mode_combo, 1)
 
         self.sort_mode_combo = QComboBox()
         self.sort_mode_combo.addItem("文件名 A-Z", 'filename_asc')
@@ -225,20 +227,20 @@ class XlsxSearcherApp(QMainWindow):
         self.sort_mode_combo.addItem("子表数最少", 'sheet_count_asc')
         self.sort_mode_combo.currentIndexChanged.connect(self._on_sort_mode_changed)
         row2.addWidget(QLabel("排序:"))
-        row2.addWidget(self.sort_mode_combo)
+        row2.addWidget(self.sort_mode_combo, 1)
 
         self.view_mode_combo = QComboBox()
         self.view_mode_combo.addItem("分组视图", 'grouped')
         self.view_mode_combo.addItem("列表视图", 'flat')
         self.view_mode_combo.currentIndexChanged.connect(self._on_view_mode_changed)
         row2.addWidget(QLabel("视图:"))
-        row2.addWidget(self.view_mode_combo)
+        row2.addWidget(self.view_mode_combo, 1)
 
         self.history_combo = QComboBox()
         self.history_combo.setMinimumWidth(220)
         self.history_combo.addItem("最近搜索")
         self.history_combo.currentIndexChanged.connect(self._on_history_selected)
-        row2.addWidget(self.history_combo)
+        row2.addWidget(self.history_combo, 1)
 
         search_outer.addLayout(row2)
 
