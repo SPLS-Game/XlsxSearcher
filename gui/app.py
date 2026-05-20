@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QStatusBar, QProgressBar, QMessageBox, QFileDialog, QComboBox
 )
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSettings
+from PyQt5.QtGui import QIcon
 
 from core.indexer import IndexManager
 from core.scanner import XlsxScanner
@@ -76,6 +77,10 @@ class XlsxSearcherApp(QMainWindow):
         self.setWindowTitle("XlsxSearcher - Excel子表搜索工具")
         self.setMinimumSize(1000, 700)
         self.resize(1000, 700)
+
+        icon_path = _get_icon_path()
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
 
         # 中心部件
         central_widget = QWidget()
@@ -683,9 +688,23 @@ class XlsxSearcherApp(QMainWindow):
         self.show()
 
 
+def _get_icon_path():
+    """获取图标文件路径，兼容开发环境和 PyInstaller 打包后的路径"""
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, 'icons', 'app_icon.png')
+
+
 def run_app():
     """启动应用程序"""
     app = QApplication(sys.argv)
+
+    icon_path = _get_icon_path()
+    if os.path.exists(icon_path):
+        app.setWindowIcon(QIcon(icon_path))
+
     window = XlsxSearcherApp()
     window.show()
     sys.exit(app.exec_())

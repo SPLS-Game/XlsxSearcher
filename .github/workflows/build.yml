@@ -41,8 +41,14 @@ jobs:
           pip install pyinstaller
 
       - name: Build with PyInstaller
+        shell: bash
         run: |
-          pyinstaller --onefile --windowed --name ${{ matrix.exe_name }} main.py
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            SEP=";"
+          else
+            SEP=":"
+          fi
+          pyinstaller --onefile --windowed --name ${{ matrix.exe_name }} --add-data "icons/app_icon.png${SEP}icons" main.py
 
       - name: Create artifact
         shell: bash
