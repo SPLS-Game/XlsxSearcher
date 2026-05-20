@@ -62,10 +62,13 @@ jobs:
         shell: bash
         run: |
           cd dist
-          # 创建 zip 包
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             powershell -Command "Compress-Archive -Path ${{ matrix.exe_name }} -DestinationPath ${{ matrix.artifact_name }}.zip -Force"
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            # macOS .app is a directory bundle — must use -r and NOT use -j
+            zip -ry ${{ matrix.artifact_name }}.zip ${{ matrix.exe_name }}.app
           else
+            # Linux single binary
             zip -j ${{ matrix.artifact_name }}.zip ${{ matrix.exe_name }}
           fi
           ls -la
