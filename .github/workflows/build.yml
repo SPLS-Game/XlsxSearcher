@@ -45,10 +45,18 @@ jobs:
         run: |
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             SEP=";"
+            ICON_FILE="icons/app_icon.ico"
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            SEP=":"
+            ICON_FILE="icons/app_icon.png"
           else
             SEP=":"
+            ICON_FILE="icons/app_icon.png"
           fi
-          pyinstaller --onefile --windowed --name ${{ matrix.exe_name }} --add-data "icons/app_icon.png${SEP}icons" main.py
+          pyinstaller --onefile --windowed --name ${{ matrix.exe_name }} \
+            --icon "$ICON_FILE" \
+            --add-data "icons/app_icon.png${SEP}icons" \
+            main.py
 
       - name: Create artifact
         shell: bash
